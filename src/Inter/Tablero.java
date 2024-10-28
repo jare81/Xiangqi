@@ -55,7 +55,7 @@ public class Tablero extends javax.swing.JFrame {
        
         initComponents();
         iniciarCasillas();
-       mostrarNombres();
+        mostrarNombres();
         
        
            tt1.setVisible(true);
@@ -178,8 +178,15 @@ public class Tablero extends javax.swing.JFrame {
             limpiarResaltado(); 
             
             Pieza pieza = tablero[filaClick][columnaClick];
+            Pieza piezaDestino = tablero[fila][columna];
         
         if (pieza != null && pieza.esMovimientoValido(filaClick, columnaClick, fila, columna)) {
+          
+            if (piezaDestino != null && !piezaDestino.getColor().equals(pieza.getColor())) {
+                capturarPieza(piezaDestino);
+            }
+            
+            
             pieza.moverPieza(filaClick, columnaClick, fila, columna);
             
             Icon iPieza = casillas[filaClick][columnaClick].getIcon();
@@ -238,7 +245,8 @@ public class Tablero extends javax.swing.JFrame {
 
         if (!reyRojoPresente) {
               Win(oponente);
-            JOptionPane.showMessageDialog(this, "¡El jugador " + oponente.getUsername().toUpperCase() + " es el ganador!" );
+            JOptionPane.showMessageDialog(this, "Jugador " + oponente.getUsername().toUpperCase() + " venció a "  + 
+                    user.obtenerUsuarioActual().getUsername() + " ¡Las piezas negras ganan!" );
             
           
             
@@ -255,7 +263,9 @@ public class Tablero extends javax.swing.JFrame {
             
         } else if (!reyNegroPresente) {
             Win(user.obtenerUsuarioActual());
-            JOptionPane.showMessageDialog(this, "¡El jugador " + user.obtenerUsuarioActual().getUsername().toUpperCase() + " es el ganador!" );
+            JOptionPane.showMessageDialog(this, "El jugador " + user.obtenerUsuarioActual().getUsername().toUpperCase() +
+                    " venció a " + oponente.getUsername() + " ¡Las piezas rojas ganan!" );
+            
             
             Logs partida = new Logs(user.obtenerUsuarioActual().getUsername(), oponente.getUsername(), "Ganada", 3);
             user.obtenerUsuarioActual().agregarLog(partida);
@@ -336,6 +346,23 @@ public class Tablero extends javax.swing.JFrame {
        return new ImageIcon(getClass().getResource(ruta));
    }
    
+   private void capturarPieza(Pieza piezaCapturada) {
+        JLabel etiquetaPieza = new JLabel();
+        etiquetaPieza.setIcon(cargarIcono(piezaCapturada.getColor() + "_" + piezaCapturada.getNombrePieza()));
+
+       
+        if (piezaCapturada.getColor().equals("R")) {
+            piezasn.add(etiquetaPieza);
+            piezasn.revalidate();
+            piezasn.repaint(); // 
+        } else {
+            piezasr.add(etiquetaPieza); 
+            piezasr.revalidate();
+            piezasr.repaint(); 
+        }
+}
+   
+   
    private void TT(){
        if(turnoRojo){
            tt1.setVisible(true);
@@ -389,11 +416,13 @@ public class Tablero extends javax.swing.JFrame {
         jLabel11 = new javax.swing.JLabel();
         txtplay1 = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
+        piezasr = new javax.swing.JPanel();
         panelN = new javax.swing.JPanel();
         jLabel8 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
         txtplay2 = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
+        piezasn = new javax.swing.JPanel();
         jLabel12 = new javax.swing.JLabel();
         tt11 = new javax.swing.JLabel();
         tt1 = new javax.swing.JLabel();
@@ -421,7 +450,7 @@ public class Tablero extends javax.swing.JFrame {
         getContentPane().add(Tablero);
         Tablero.setBounds(440, 20, 650, 750);
 
-        panelR.setBackground(new java.awt.Color(0, 0, 0));
+        panelR.setBackground(new java.awt.Color(102, 0, 0));
         panelR.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
         panelR.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
@@ -440,7 +469,7 @@ public class Tablero extends javax.swing.JFrame {
         txtplay1.setBackground(new java.awt.Color(102, 0, 0));
         txtplay1.setFont(new java.awt.Font("Arial Rounded MT Bold", 0, 18)); // NOI18N
         txtplay1.setForeground(new java.awt.Color(255, 255, 255));
-        txtplay1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(153, 0, 0), 2));
+        txtplay1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(255, 255, 255), 2));
         txtplay1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 txtplay1ActionPerformed(evt);
@@ -455,11 +484,12 @@ public class Tablero extends javax.swing.JFrame {
 
         jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imags/button2.png"))); // NOI18N
         panelR.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 10, -1, -1));
+        panelR.add(piezasr, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 150, 310, 310));
 
         getContentPane().add(panelR);
-        panelR.setBounds(60, 100, 350, 420);
+        panelR.setBounds(60, 100, 350, 480);
 
-        panelN.setBackground(new java.awt.Color(102, 0, 0));
+        panelN.setBackground(new java.awt.Color(0, 0, 0));
         panelN.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
         panelN.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
@@ -493,9 +523,10 @@ public class Tablero extends javax.swing.JFrame {
 
         jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imags/button2.png"))); // NOI18N
         panelN.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 10, -1, -1));
+        panelN.add(piezasn, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 150, 310, 300));
 
         getContentPane().add(panelN);
-        panelN.setBounds(1130, 110, 350, 410);
+        panelN.setBounds(1130, 110, 350, 470);
 
         jLabel12.setFont(new java.awt.Font("Berlin Sans FB", 0, 18)); // NOI18N
         jLabel12.setForeground(new java.awt.Color(255, 255, 255));
@@ -584,7 +615,7 @@ public class Tablero extends javax.swing.JFrame {
                 if (respuesta == JOptionPane.YES_OPTION) {
                     noRetirado.setPuntos(3);
                             Win(noRetirado);
-                           JOptionPane.showMessageDialog(null, "¡El jugador " + noRetirado.getUsername()  +  " es el ganador! ", "GANADOR", JOptionPane.INFORMATION_MESSAGE);
+                           JOptionPane.showMessageDialog(null, "El jugador " + retirado.getUsername()+ " Se ha retirado.\n Felicidades " +  noRetirado.getUsername()  +  " eres el ganador! ", "GANADOR", JOptionPane.INFORMATION_MESSAGE);
                             
                             
                             Logs partida = new Logs(noRetirado.getUsername(), retirado.getUsername(), "Ganada por Retiro", 3);
@@ -655,6 +686,8 @@ public class Tablero extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel panelN;
     private javax.swing.JPanel panelR;
+    private javax.swing.JPanel piezasn;
+    private javax.swing.JPanel piezasr;
     private javax.swing.JLabel tt1;
     private javax.swing.JLabel tt11;
     private javax.swing.JLabel tt2;
