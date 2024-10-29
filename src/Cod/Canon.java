@@ -39,28 +39,27 @@ public class Canon extends Pieza {
 
         while (fila != fdestino || columna != cdestino) {
             if (tablero.getTablero()[fila][columna] != null) {
-                contadorPiezas++; // Contar las piezas en el camino
+                contadorPiezas++; 
             }
             fila += filaInc;
             columna += colInc;
         }
-
+        
+        
         //  pieza en el destino
         Pieza destino = tablero.getTablero()[fdestino][cdestino];
 
         if (destino != null) {
-            //  si hay exactamente una pieza entre origen y destino
             if (contadorPiezas == 1 && !destino.getColor().equals(this.getColor())) {
                 return true; 
             } else {
                 return false; 
             }
         } else {
-            // puede moverse sin saltar piezas
             return contadorPiezas == 0;
         }
     }
-      
+    
     
     
     public boolean moverPieza(int forigen, int corigen, int fdestino, int cdestino){

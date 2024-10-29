@@ -39,6 +39,7 @@ public class Tablero extends javax.swing.JFrame {
     private Logs[] logs;
    
     private final Border bordeResaltado = new LineBorder(Color.YELLOW, 3); 
+    private final Border borderO = new LineBorder(Color.BLACK, 1);
     
     private boolean hayPiezaSelect = false;
     private int filaClick;
@@ -55,7 +56,7 @@ public class Tablero extends javax.swing.JFrame {
        
         initComponents();
         iniciarCasillas();
-        mostrarNombres();
+        //mostrarNombres();
         
        
            tt1.setVisible(true);
@@ -66,10 +67,23 @@ public class Tablero extends javax.swing.JFrame {
         
     }
     
-      private void mostrarNombres() {
+    private void mostrarNombres() {
         txtplay1.setText(user.obtenerUsuarioActual().getUsername().toUpperCase());
         txtplay2.setText(oponente.getUsername().toUpperCase());
     }
+      
+    public boolean getRojo(){
+       return turnoRojo;
+    }
+
+    public int getFila(){
+        return filaClick;
+    }
+
+    public int getColumna(){
+        return columnaClick;
+    }
+   
     
    
    private void iniciarCasillas() {
@@ -149,6 +163,7 @@ public class Tablero extends javax.swing.JFrame {
                         public void actionPerformed (ActionEvent e){
                             manejarClic(f, c);
                             System.out.println("Fila " + getFila() + " Columna " + getColumna());
+                            
 
                         }
                     });
@@ -186,7 +201,6 @@ public class Tablero extends javax.swing.JFrame {
                 capturarPieza(piezaDestino);
             }
             
-            
             pieza.moverPieza(filaClick, columnaClick, fila, columna);
             
             Icon iPieza = casillas[filaClick][columnaClick].getIcon();
@@ -195,7 +209,8 @@ public class Tablero extends javax.swing.JFrame {
             
             turnoRojo = !turnoRojo;
             TT();
-            verificarGanador(); 
+            verificarGanador();
+            verificarEmpate();
             
         } else {
             hayPiezaSelect = false;
@@ -260,6 +275,7 @@ public class Tablero extends javax.swing.JFrame {
             this.setVisible(false);
             new Menu_Principal(user).setVisible(true);
 
+         
             
         } else if (!reyNegroPresente) {
             Win(user.obtenerUsuarioActual());
@@ -279,6 +295,77 @@ public class Tablero extends javax.swing.JFrame {
         }
 }
    
+   private void verificarEmpate() {
+    int cantidadPiezas = 0;
+    int[] posicionReyRojo = null;
+    int[] posicionReyNegro = null;
+
+    // Recorre el tablero y cuenta piezas diferentes de los reyes
+    for (int fila = 0; fila < tablero.length; fila++) {
+        for (int columna = 0; columna < tablero[fila].length; columna++) {
+            Pieza pieza = tablero[fila][columna];
+
+            if (pieza != null) {
+                if (pieza.getNombrePieza().equals("rey")) {
+                    if (pieza.getColor().equals("R")) {
+                        posicionReyRojo = new int[] { fila, columna };
+                    } else if (pieza.getColor().equals("N")) {
+                        posicionReyNegro = new int[] { fila, columna };
+                    }
+                } else {
+                    cantidadPiezas++; 
+                }
+            }
+        }
+    }
+
+   
+    if (cantidadPiezas <= 1) {
+
+        if (posicionReyRojo != null && posicionReyNegro != null && posicionReyRojo[1] == posicionReyNegro[1]) {
+            int filaInicio = Math.min(posicionReyRojo[0], posicionReyNegro[0]);
+            int filaFin = Math.max(posicionReyRojo[0], posicionReyNegro[0]);
+
+            boolean sinPiezasEntreReyes = true;
+            for (int fila = filaInicio + 1; fila < filaFin; fila++) {
+                if (tablero[fila][posicionReyRojo[1]] != null) {
+                    sinPiezasEntreReyes = false;
+                    break;
+                }
+            }
+
+            if (sinPiezasEntreReyes) {
+                JOptionPane.showMessageDialog(this, "¡Empate! Los reyes están cara a cara sin piezas entre ellos.");
+                registrarEmpate();
+                return;
+            }
+        }
+
+        if (cantidadPiezas == 0) {
+            JOptionPane.showMessageDialog(this, "¡Empate! Solo quedan los reyes en el tablero.");
+        } else if (cantidadPiezas == 1) {
+            JOptionPane.showMessageDialog(this, "¡Empate! Solo quedan los reyes y una pieza adicional.");
+        }
+        registrarEmpate();
+    }
+}
+
+    private void registrarEmpate() {
+        Logs partidaEmpate1 = new Logs(user.obtenerUsuarioActual().getUsername(), oponente.getUsername(), "Empate", 0);
+        Logs partidaEmpate2 = new Logs(oponente.getUsername(), user.obtenerUsuarioActual().getUsername(), "Empate", 0);
+
+        user.obtenerUsuarioActual().agregarLog(partidaEmpate1);
+        oponente.agregarLog(partidaEmpate2);
+
+        user.obtenerUsuarioActual().setPuntos(1);
+        oponente.setPuntos(1);
+
+        this.setVisible(false);
+        new Menu_Principal(user).setVisible(true);
+    }
+   
+   
+   
    
    
    private void resaltarValidos(int fila, int columna) {
@@ -289,8 +376,11 @@ public class Tablero extends javax.swing.JFrame {
         for (int i = 0; i < tablero.length; i++) {
             for (int j = 0; j < tablero[i].length; j++) {
                 
-                if (pieza.esMovimientoValido(fila, columna, i, j)) {
-                    casillas[i][j].setBorder(bordeResaltado);
+                if (pieza.esMovimientoValido(fila, columna, i, j) ) {
+                    if(casillas[i][j].isEnabled()){
+                         casillas[i][j].setBorder(bordeResaltado);
+                    }
+                   
                     
                     if (contadorR < resaltos.length) {  
                         resaltos[contadorR++] = casillas[i][j];
@@ -302,29 +392,14 @@ public class Tablero extends javax.swing.JFrame {
    
    private void limpiarResaltado() {
         for (int i = 0; i < contadorR; i++) {
-            resaltos[i].setBorder(null);
+            resaltos[i].setBorder(borderO);
             resaltos[i] = null; 
         }
         contadorR = 0; 
     }
    
    
-   
-   
-   public boolean getRojo(){
-       return turnoRojo;
-   }
-   
-   
   
-   public int getFila(){
-       return filaClick;
-   }
-   
-   public int getColumna(){
-       return columnaClick;
-   }
-   
    
    
    private boolean piezaDeTurno(int fila, int columna){
@@ -354,13 +429,58 @@ public class Tablero extends javax.swing.JFrame {
         if (piezaCapturada.getColor().equals("R")) {
             piezasn.add(etiquetaPieza);
             piezasn.revalidate();
-            piezasn.repaint(); // 
+            piezasn.repaint();  
         } else {
             piezasr.add(etiquetaPieza); 
             piezasr.revalidate();
             piezasr.repaint(); 
         }
-}
+    }
+   
+   
+   public int[] obtenerPosicionRey(String color) {
+       
+        for (int fila = 0; fila < tablero.length; fila++) {
+            for (int columna = 0; columna < tablero[fila].length; columna++) {
+                Pieza pieza = tablero[fila][columna];
+                if (pieza != null && pieza.getNombrePieza().equals("rey") && pieza.getColor().equals(color)) {
+                    return new int[] { fila, columna };
+                }
+            }
+        }
+        return null;
+    }
+   
+   
+   public int contarPiezasFila(int fila, int columna, String color) {
+        if (fila < 0 || fila >= tablero.length || columna < 0 || columna >= tablero[0].length) {
+            return 0;
+        }
+
+        int contador = 0;
+        Pieza pieza = tablero[fila][columna];
+        if (pieza != null && pieza.getColor().equals(color)) {
+            contador = 1;
+        }
+
+        // Llama asiguiente casilla  derecha
+        return contador + contarPiezasFila(fila, columna + 1, color);
+    }
+   
+   public int contarPiezasColumna(int fila, int columna, String color) {
+        if (fila < 0 || fila >= tablero.length || columna < 0 || columna >= tablero[0].length) {
+            return 0;
+        }
+
+        int contador = 0;
+        Pieza pieza = tablero[fila][columna];
+        if (pieza != null && pieza.getColor().equals(color)) {
+            contador = 1;
+        }
+
+        return contador + contarPiezasColumna(fila + 1, columna, color);  // Avanza hacia abajo
+    }
+   
    
    
    private void TT(){
